@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>FE!N</title>
+        <script src="script.js"></script>
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body>
+        <form id="file-select">
+            <!-- File input for audio files -->
+            <input type="file" id="audio-file" accept="audio/*">
+            <button type="button" id="submit-btn">Submit</button>
+            <button type="button" id="play-btn">Play/Pause</button>
+            <input type="range" min="5" max="15" value="6" class="slider" id="sections">
+        </form>
+        <div id="visualizer">
+            <canvas id="canvas">
+                Your browser does not support the HTML5 canvas element. 
+            </canvas>
+        </div>
+    </body>
+</html>
