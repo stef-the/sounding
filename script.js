@@ -44,7 +44,6 @@ window.onload = () => {
       if (audioPlayer.paused) {
         audioPlayer.play();
 
-        // run visualizer until audio is paused
         // split audio frequency into 32 bands
         const audioContext = new AudioContext();
         let analyser = audioContext.createAnalyser();
@@ -68,16 +67,19 @@ window.onload = () => {
           canvasCtx.fillStyle = "rgb(0, 0, 0)";
           canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
           for (let i = 0; i < bufferLength; i++) {
-            barHeight = dataArray[i];
+            // set barHeight maximum to 100% of canvas height
+            barHeight = ((dataArray[i]^1.5)/(255^1.5) * canvas.height)/3;
+            console.log(barHeight);
             const r = barHeight + 25 * (i / bufferLength);
             const g = 250 * (i / bufferLength);
-            const b = 50;
+            const b = 50 + 10 * (i / bufferLength);
             canvasCtx.fillStyle = `rgb(${r},${g},${b})`;
+            // make max barheight equal to max canvas height
             canvasCtx.fillRect(
               x,
-              canvas.height - barHeight,
+              canvas.height/2-barHeight,
               barWidth,
-              barHeight
+              barHeight*2
             );
             x += barWidth;
           }
