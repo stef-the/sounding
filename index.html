@@ -1,25 +1,44 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>FE!N</title>
-        <script src="script.js"></script>
-        <link rel="stylesheet" type="text/css" href="style.css">
-    </head>
-    <body>
-        <form id="file-select">
-            <!-- File input for audio files -->
-            <label for="audio-file" class="custom-file-upload">
-                Upload
-            </label>
-            <input type="file" id="audio-file">
-            <button type="button" id="submit-btn">Submit</button>
-            <button type="button" id="play-btn">Play/Pause</button>
-            <input type="range" min="5" max="15" value="6" class="slider" id="sections">
-        </form>
-        <div id="visualizer">
-            <canvas id="canvas">
-                Your browser does not support the HTML5 canvas element. 
-            </canvas>
-        </div>
-    </body>
+  <head>
+    <title>FE!N</title>
+    <script src="script.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+  </head>
+  <body>
+    <form id="file-select">
+      <!-- File input for audio files -->
+      <label for="audio-file" class="custom-file-upload"> Upload </label>
+      <input type="file" id="audio-file" />
+      <label
+        for="sections"
+        class="custom-file-upload"
+        id="sections-label"
+      ></label>
+      <input
+        type="range"
+        min="5"
+        max="15"
+        value="10"
+        class="slider"
+        id="sections"
+      />
+    </form>
+    <div id="visualizer">
+      <canvas id="canvas">
+        Your browser does not support the HTML5 canvas element.
+      </canvas>
+    </div>
+    <div id="audio-player">
+      <audio id="audio" preload="metadata" loop>
+        Your browser does not support the audio element.
+      </audio>
+      <label for="play-btn" id="play-btn-label" class="custom-file-upload">Play</label>
+      <button type="button" id="play-btn"></button>
+      <span id="current-time" class="time">0:00</span>
+      <input type="range" id="seek-slider" max="1000" value="0" />
+      <span id="duration" class="time">0:00</span>
+      <input type="range" id="volume-slider" max="100" value="100" />
+    </div>
+  </body>
 </html>
