@@ -27,7 +27,8 @@ body {
 }
 
 #file-select label.custom-file-upload,
-#audio-player-container label.custom-file-upload {
+#audio-player-container label.custom-file-upload,
+#file-select select {
     border: none;
     margin: 0.5rem 0.25rem;
     padding: 0.25rem 1rem;
@@ -46,6 +47,10 @@ body {
     justify-content: center;
     align-items: center;
     user-select: none;
+}
+
+#file-select select {
+    height: 2rem;
 }
 
 #file-select button,
