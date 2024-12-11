@@ -25,8 +25,7 @@ body {
 #file-select label.custom-file-upload,
 #audio-player label.custom-file-upload {
     border: none;
-    margin: 0.5rem;
-    display: inline-block;
+    margin: 0.5rem 0.25rem;
     padding: 0.25rem 1rem;
     background-color: #333;
     color: #fefefe;
@@ -38,6 +37,11 @@ body {
     border-radius: 3px;
     transition: background-color 0.3s;
     font-size: small;
+    height: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
 }
 
 #file-select button,
@@ -52,15 +56,93 @@ body {
     z-index: -1;
 }
 
+#range-container {
+    padding: 0.25rem 0.5rem;
+}
+
+#sections-label {
+    padding: 0 0.5rem;
+}
+
 /* audio player */
 
 #audio-player {
+    position: fixed;
+    bottom: 0;
+    left: calc(50% - 25vw);
     display: flex;
     justify-content: center;
     align-items: center;
     margin: 1rem;
+    width: 50vw;
 }
 
-#audio-player input[type="range"]#seek-slider {
+#audio-player div#seek-container,
+#file-select div#range-container {
+    background-color: #333;
+    border-radius: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.25rem 0.1rem;
+    margin: 0 0.25rem;
+    height: 1.5rem;
+}
+
+#audio-player div#seek-container input[type="range"]#seek-slider {
     width: 30vw;
 }
+
+#audio-player div#seek-container span {
+    margin: 0 0.5rem;
+    cursor: default;
+}
+
+/* style audio player slider */
+
+#slider-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 1.5rem;
+    margin: 0 0.25rem;
+    padding: 0 0.2rem;
+    background-color: #111;
+    border-radius: 3px;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 1.5rem;
+    background: #111;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: 0.2s;
+    transition: opacity 0.2s;
+    border-radius: 3px;
+}
+
+input[type="range"]:hover {
+    opacity: 1;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    background: #999;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+input[type="range"]::-moz-range-thumb {
+    border: none;
+    width: 1rem;
+    height: 1rem;
+    background: #999;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
