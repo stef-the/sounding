@@ -1,171 +1,298 @@
 window.onload = () => {
   console.log("Hello World");
 
-  const audioFile = document.getElementById("audio-file"); // audio file input element
-  const playBtn = document.getElementById("play-btn"); // play button element
-  const playBtnLabel = document.getElementById("play-btn-label"); // play button label element
-  const sections = document.getElementById("sections"); // sections slider element
-  const sectionsLabel = document.getElementById("sections-label"); // sections slider label element
-  let audioFileVar = null;
-  const songTitle = document.getElementById("song-title"); // song title element
-  const audioPlayer = document.getElementById("audio"); // audio player element
-  const seekSlider = document.getElementById("seek-slider"); // seek slider element
-  const volumeSlider = document.getElementById("volume-slider"); // volume slider element
-  const currentTime = document.getElementById("current-time"); // current time element
-  const duration = document.getElementById("duration"); // duration element
+  // -----------------------------------
+  // DOM Element References
+  // -----------------------------------
+  const audioMode = document.getElementById("audio-mode"); 
+  const modeSwitch = document.getElementById("mode-switch"); 
 
-  let isSeeking = false; // seeking state
+  const audioFileInput = document.getElementById("audio-file"); 
+  const playButton = document.getElementById("play-btn"); 
+  const playButtonLabel = document.getElementById("play-btn-label"); 
 
-  // prep canvas for visualizer
-  const canvas = document.getElementById("canvas");
+  const sectionsSlider = document.getElementById("sections"); 
+  const sectionsLabel = document.getElementById("sections-label"); 
+
+  const songTitle = document.getElementById("song-title"); 
+  const audioPlayer = document.getElementById("audio"); 
+  const audioPlayerContainer = document.getElementById("audio-player-container"); 
+  const seekSlider = document.getElementById("seek-slider"); 
+  const currentTimeLabel = document.getElementById("current-time"); 
+  const durationLabel = document.getElementById("duration"); 
+
+  const volumeSlider = document.getElementById("volume-slider"); 
+  const volumeSliderLabel = document.getElementById("volume-slider-label"); 
+
+  const canvas = document.getElementById("canvas"); 
   const canvasCtx = canvas.getContext("2d");
 
-  // setup canvas
+  // -----------------------------------
+  // State Variables
+  // -----------------------------------
+  let isSeeking = false;
+  let audioFileVar = null;
+  let audioContext = null;
+  let analyser = null;
+  let dataArray = null;
+  let bufferLength = 0;
+  let source = null;
+  let micStream = null;
+  let visualizationMode = "linear-spectrogram";
+
+  // -----------------------------------
+  // Canvas Setup
+  // -----------------------------------
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   canvasCtx.fillStyle = "rgb(0, 0, 0)";
   canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // event listeners
+  // -----------------------------------
+  // Utility Functions
+  // -----------------------------------
+  function formatTime(time) {
+    const minutes = Math.floor(time / 60);
+    let seconds = Math.floor(time % 60);
+    seconds = seconds < 10 ? `0${seconds}` : seconds;
+    return `${minutes}:${seconds}`;
+  }
 
-  audioFile.addEventListener("change", () => {
-    audioFileVar = audioFile.files[0];
-    console.log(audioFileVar);
-    document.getElementById("audio").src = URL.createObjectURL(audioFileVar);
+  function updateTimeLabels() {
+    currentTimeLabel.innerText = formatTime(audioPlayer.currentTime);
+    durationLabel.innerText = formatTime(audioPlayer.duration);
+  }
 
-    // set song title to audio file name
-    songTitle.innerText = audioFileVar.name;
+  function initAnalyser(sourceNode) {
+    if (!audioContext) {
+      audioContext = new AudioContext();
+    }
+    analyser = audioContext.createAnalyser();
+    sourceNode.connect(analyser);
+    analyser.connect(audioContext.destination);
+
+    analyser.fftSize = 2 ** sectionsSlider.value;
+    bufferLength = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufferLength);
+  }
+
+  function renderVisualizationFrame() {
+    requestAnimationFrame(renderVisualizationFrame);
+    if (!analyser) return;
+
+    analyser.getByteFrequencyData(dataArray);
+
+    // Clear canvas
+    canvasCtx.fillStyle = "rgb(0, 0, 0)";
+    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+    switch (visualizationMode) {
+      case "linear-spectrogram":
+        drawLinearSpectrogram();
+        break;
+      case "circular-spectrogram":
+        // Placeholder
+        break;
+      case "waveform":
+        // Placeholder
+        break;
+      default:
+        drawLinearSpectrogram();
+    }
+
+    if (audioPlayer && audioPlayer.duration && audioMode.value !== "2") {
+      if (!isSeeking) {
+        seekSlider.value = (audioPlayer.currentTime / audioPlayer.duration) * 1000;
+      }
+      updateTimeLabels();
+    }
+  }
+
+  function drawLinearSpectrogram() {
+    const barWidth = (canvas.width / bufferLength) * 2.5;
+    let barHeight;
+    let x = 0;
+
+    for (let i = 0; i < bufferLength; i++) {
+      barHeight = (((dataArray[i] ** 1.5) / (255 ** 1.5)) * canvas.height) / 3;
+
+      const r = barHeight + 25 * (i / bufferLength);
+      const g = 255 * (i / bufferLength);
+      const b = 50 + 10 * (i / bufferLength);
+
+      canvasCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+      canvasCtx.fillRect(
+        x,
+        canvas.height / 2 - barHeight,
+        barWidth,
+        barHeight * 2
+      );
+      x += barWidth;
+    }
+  }
+
+  // Placeholders for future modes
+  function drawCircularSpectrogram() {}
+  function drawWaveform() {}
+
+  // -----------------------------------
+  // Mode Handling
+  // -----------------------------------
+  function handleModeSwitch() {
+    // If leaving microphone mode, stop mic stream and reset analyzer and source
+    if (micStream && audioMode.value !== "2") {
+      micStream.getTracks().forEach(track => track.stop());
+      micStream = null;
+      source = null;
+      analyser = null;
+    }
+
+    switch (audioMode.value) {
+      case "0":
+        // Player mode: show audio player container
+        audioPlayerContainer.classList.remove("hidden");
+        break;
+      case "1":
+        // File mode: hide audio player container
+        audioPlayerContainer.classList.add("hidden");
+        break;
+      case "2":
+        // Microphone mode: hide player container, stop any current track
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+        playButtonLabel.innerText = "Play";
+        audioPlayerContainer.classList.add("hidden");
+        startMicrophoneStream();
+        break;
+      default:
+        console.warn("Unknown audio mode selected.");
+    }
+  }
+
+  audioMode.addEventListener("change", handleModeSwitch);
+
+  // -----------------------------------
+  // Microphone Capture
+  // -----------------------------------
+  async function startMicrophoneStream() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      micStream = stream;
+      if (!audioContext) {
+        audioContext = new AudioContext();
+      }
+
+      source = audioContext.createMediaStreamSource(stream);
+      initAnalyser(source);
+      renderVisualizationFrame();
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+    }
+  }
+
+  // -----------------------------------
+  // File Input Handling
+  // -----------------------------------
+  audioFileInput.addEventListener("change", () => {
+    audioFileVar = audioFileInput.files[0];
+    if (audioFileVar) {
+      audioPlayer.src = URL.createObjectURL(audioFileVar);
+      songTitle.innerText = audioFileVar.name;
+    }
   });
 
-  // add event listeners to seek slider to set isSeeking state
+  // -----------------------------------
+  // Playback Control
+  // -----------------------------------
+  playButton.addEventListener("click", () => {
+    if (!audioPlayer) {
+      console.error("No audio player available.");
+      return;
+    }
+
+    // If microphone mode is active, we do not control the audio player
+    if (audioMode.value === "2") {
+      console.log("Microphone mode active; not playing file audio.");
+      return;
+    }
+
+    if (audioPlayer.paused) {
+      audioPlayer.play();
+      fadeInAudio(audioPlayer);
+
+      // Always re-initialize the analyser in non-mic modes to ensure it works
+      if (!audioContext) {
+        audioContext = new AudioContext();
+      }
+      source = audioContext.createMediaElementSource(audioPlayer);
+      initAnalyser(source);
+      renderVisualizationFrame();
+
+      playButtonLabel.innerText = "Pause";
+    } else {
+      audioPlayer.pause();
+      playButtonLabel.innerText = "Play";
+    }
+  });
+
+  function fadeInAudio(player) {
+    player.volume = 0;
+    let volume = 0;
+    const fadeInterval = setInterval(() => {
+      if (volume < 1 && !player.paused) {
+        volume += 0.01;
+        player.volume = Math.min(volume, 1);
+      } else {
+        clearInterval(fadeInterval);
+      }
+    }, 10);
+  }
+
+  // -----------------------------------
+  // Seek Handling
+  // -----------------------------------
   seekSlider.addEventListener("mousedown", () => {
     isSeeking = true;
   });
 
   seekSlider.addEventListener("mouseup", () => {
     isSeeking = false;
-    // set audio player current time to seek slider value
-    audioPlayer.currentTime = (seekSlider.value / 1000) * audioPlayer.duration;
-  });
-
-  /*
-  // add event listener to volume slider to change audio volume
-  volumeSlider.addEventListener("input", () => {
-    audioPlayer.volume = volumeSlider.value / 100;
-  });
-  */
-
-  // add event listener to play button to play audio and start visualizer
-  playBtn.addEventListener("click", () => {
-    if (audioPlayer) {
-      if (audioPlayer.paused) {
-        // play audio
-        audioPlayer.play();
-
-        // fade in audio volume
-        audioPlayer.volume = 0;
-        let volume = 0;
-        const fadeAudio = setInterval(() => {
-          if (volume < 1 && !audioPlayer.paused) {
-            volume += 0.01;
-            audioPlayer.volume = volume;
-          } else {
-            clearInterval(fadeAudio);
-            if (audioPlayer.paused) {
-              audioPlayer.volume = 0;
-            } else {
-              audioPlayer.volume = 1;
-            }
-          }
-        }, 10);
-
-        // split audio frequency into 32 bands
-        const audioContext = new AudioContext();
-        let analyser = audioContext.createAnalyser();
-        const source = audioContext.createMediaElementSource(audioPlayer);
-        source.connect(analyser);
-        analyser.connect(audioContext.destination);
-        // dynamically set size to sections slider value
-        analyser.fftSize = 2 ** sections.value;
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        let barWidth = (canvas.width / bufferLength) * 2.5;
-        let barHeight;
-        let x = 0;
-
-        // render frame of animation
-        function renderFrame() {
-          requestAnimationFrame(renderFrame);
-          x = 0;
-          analyser.getByteFrequencyData(dataArray);
-          canvasCtx.fillStyle = "rgb(0, 0, 0)";
-          canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-          for (let i = 0; i < bufferLength; i++) {
-            // set barHeight maximum to 100% of canvas height
-            barHeight =
-              (((dataArray[i] ^ 1.5) / (255 ^ 1.5)) * canvas.height) / 3;
-            const r = barHeight + 25 * (i / bufferLength);
-            const g = 255 * (i / bufferLength);
-            const b = (50 + 10 * (i / bufferLength)) ^ 2;
-            canvasCtx.fillStyle = `rgb(${r},${g},${b})`;
-            // make max barheight equal to max canvas height
-            canvasCtx.fillRect(
-              x,
-              canvas.height / 2 - barHeight,
-              barWidth,
-              barHeight * 2
-            );
-            x += barWidth;
-          }
-
-          // update seek slider value
-          if (!isSeeking) {
-            seekSlider.value =
-              (audioPlayer.currentTime / audioPlayer.duration) * 1000;
-          }
-
-          // update current time and duration
-          currentTime.innerText = formatTime(audioPlayer.currentTime);
-          duration.innerText = formatTime(audioPlayer.duration);
-        }
-
-        // start animation
-        renderFrame();
-
-        // change button label text
-        playBtnLabel.innerText = "Pause";
-      } else {
-        audioPlayer.pause();
-
-        // change button label text
-        playBtnLabel.innerText = "Play";
-      }
-    } else {
-      console.error("No audio file provided");
+    if (audioPlayer && audioPlayer.duration) {
+      audioPlayer.currentTime = (seekSlider.value / 1000) * audioPlayer.duration;
     }
   });
 
-  // add event listener to slider to change fftSize
-  // and update slider label
-  sections.addEventListener("input", () => {
-    document.getElementById("sections-label").innerText = `Sections: ${
-      2 ** sections.value
-    }`;
+  // -----------------------------------
+  // Sections (FFT Size) Handling
+  // -----------------------------------
+  sectionsSlider.addEventListener("input", handleSectionsChange);
+
+  function handleSectionsChange() {
+    const fftSize = 2 ** sectionsSlider.value;
+    sectionsLabel.innerText = `Sections: ${fftSize}`;
+    if (analyser) {
+      analyser.fftSize = fftSize;
+      bufferLength = analyser.frequencyBinCount;
+      dataArray = new Uint8Array(bufferLength);
+    }
+  }
+
+  // -----------------------------------
+  // Volume Handling
+  // -----------------------------------
+  volumeSlider.addEventListener("input", () => {
+    const volumeValue = volumeSlider.value;
+    volumeSliderLabel.innerText = `Volume: ${volumeValue}%`;
+    if (audioPlayer && audioMode.value !== "2") {
+      audioPlayer.volume = volumeValue / 100;
+    }
   });
 
-  // set sections slider span to initial value
-  console.log(sections.value)
-  sectionsLabel.innerText = `Sections: ${
-    2 ** sections.value
-  }`;
-};
+  volumeSliderLabel.innerText = `Volume: ${volumeSlider.value}%`;
 
-// format time function
-function formatTime(time) {
-  const minutes = Math.floor(time / 60);
-  let seconds = Math.floor(time % 60);
-  seconds = seconds < 10 ? `0${seconds}` : seconds;
-  return `${minutes}:${seconds}`;
-}
+  // -----------------------------------
+  // Initialization
+  // -----------------------------------
+  handleSectionsChange();
+  handleModeSwitch();
+};

@@ -8,6 +8,10 @@ body {
     padding: 0;
 }
 
+.hidden {
+    display: none !important;
+}
+
 /* Header */
 
 /* File Select */
@@ -23,7 +27,7 @@ body {
 }
 
 #file-select label.custom-file-upload,
-#audio-player label.custom-file-upload {
+#audio-player-container label.custom-file-upload {
     border: none;
     margin: 0.5rem 0.25rem;
     padding: 0.25rem 1rem;
@@ -45,7 +49,7 @@ body {
 }
 
 #file-select button,
-#audio-player button {
+#audio-player-container button {
     display: none;
 }
 
@@ -66,7 +70,7 @@ body {
 
 /* audio player */
 
-#audio-player {
+#audio-player-container {
     position: fixed;
     bottom: 0;
     left: calc(50% - 25vw);
@@ -74,10 +78,9 @@ body {
     justify-content: center;
     align-items: center;
     margin: 1rem;
-    width: 50vw;
 }
 
-#audio-player div#seek-container,
+#audio-player-container div#seek-container,
 #file-select div#range-container {
     background-color: #333;
     border-radius: 3px;
@@ -89,11 +92,11 @@ body {
     height: 1.5rem;
 }
 
-#audio-player div#seek-container input[type="range"]#seek-slider {
+#audio-player-container div#seek-container input[type="range"]#seek-slider {
     width: 30vw;
 }
 
-#audio-player div#seek-container span {
+#audio-player-container div#seek-container span {
     margin: 0 0.5rem;
     cursor: default;
 }
@@ -145,4 +148,3 @@ input[type="range"]::-moz-range-thumb {
     cursor: pointer;
     border-radius: 3px;
 }
-

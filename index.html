@@ -8,6 +8,16 @@
   <body>
     <form id="file-select">
       <!-- File input for audio files -->
+      <select id="audio-mode">
+        <option value="0">Local</option>
+        <option value="1">Player (External)</option>
+        <option value="2">Microphone</option>
+      </select>
+      <select id="mode-switch">
+        <option value="0">Spectrogram</option>
+        <option value="1">Waveform</option>
+        <option value="2">None of these do anything lol</option>
+      </select>
       <label for="audio-file" class="custom-file-upload"> Upload </label>
       <input type="file" id="audio-file" />
       <div id="range-container">
@@ -32,7 +42,7 @@
         Your browser does not support the HTML5 canvas element.
       </canvas>
     </div>
-    <div id="audio-player">
+    <div id="audio-player-container">
       <audio id="audio" preload="metadata" loop>
         Your browser does not support the audio element.
       </audio>
@@ -47,7 +57,8 @@
         </div>
         <span id="duration" class="time">0:00</span>
       </div>
-      <!--<input type="range" id="volume-slider" max="100" value="100" />-->
+      <label for="volume-slider" id="volume-slider-label">Volume</label>
+      <input type="range" id="volume-slider" max="100" value="100" />
     </div>
   </body>
 </html>
