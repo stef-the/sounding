@@ -2,10 +2,14 @@ window.onload = () => {
   console.log("Hello World");
 
   const audioFile = document.getElementById("audio-file");
-  const submitBtn = document.getElementById("submit-btn");
   const playBtn = document.getElementById("play-btn");
+  const playBtnLabel = document.getElementById("play-btn-label");
   let audioFileVar = null;
-  let audioPlayer = null;
+  const audioPlayer = document.getElementById("audio"); // audio player element
+  const seekSlider = document.getElementById("seek-slider"); // seek slider element
+  const volumeSlider = document.getElementById("volume-slider"); // volume slider element
+  const currentTime = document.getElementById("current-time"); // current time element
+  const duration = document.getElementById("duration"); // duration element
 
   // prep canvas for visualizer
   const canvas = document.getElementById("canvas");
@@ -22,21 +26,10 @@ window.onload = () => {
 
   // event listeners
 
-  submitBtn.addEventListener("click", () => {
+  audioFile.addEventListener("change", () => {
     audioFileVar = audioFile.files[0];
     console.log(audioFileVar);
-
-    // setup audio player and add it to DOM only if there is no audio player
-    // if there is an audio player, just change the src
-    if (document.querySelector("audio")) {
-      document.querySelector("audio").src = URL.createObjectURL(audioFileVar);
-      return;
-    } else {
-      audioPlayer = document.createElement("audio");
-      audioPlayer.src = URL.createObjectURL(audioFileVar);
-      audioPlayer.controls = true;
-      document.body.appendChild(audioPlayer);
-    }
+    document.getElementById("audio").src = URL.createObjectURL(audioFileVar);
   });
 
   playBtn.addEventListener("click", () => {
@@ -60,6 +53,7 @@ window.onload = () => {
         let barHeight;
         let x = 0;
 
+        // render frame of animation
         function renderFrame() {
           requestAnimationFrame(renderFrame);
           x = 0;
@@ -69,7 +63,6 @@ window.onload = () => {
           for (let i = 0; i < bufferLength; i++) {
             // set barHeight maximum to 100% of canvas height
             barHeight = ((dataArray[i]^1.5)/(255^1.5) * canvas.height)/3;
-            console.log(barHeight);
             const r = barHeight + 25 * (i / bufferLength);
             const g = 250 * (i / bufferLength);
             const b = 50 + 10 * (i / bufferLength);
@@ -83,14 +76,44 @@ window.onload = () => {
             );
             x += barWidth;
           }
+
+          // update seek slider
+          seekSlider.value = audioPlayer.currentTime / audioPlayer.duration * 1000;
+          currentTime.innerText = formatTime(audioPlayer.currentTime);
+          duration.innerText = formatTime(audioPlayer.duration);
+
         }
 
+        // start animation
         renderFrame();
+
+        // change button label text
+        playBtnLabel.innerText = "Pause";
       } else {
         audioPlayer.pause();
+
+        // change button label text
+        playBtnLabel.innerText = "Play";
       }
     } else {
       console.error("No audio file provided");
     }
   });
+
+  // set slider label value to slider value
+  document.getElementById("sections-label").innerText = `Sections: ${2**slider.value}`;
+
+  // add event listener to slider to change fftSize
+  // and update slider label
+  slider.addEventListener("input", () => {
+    document.getElementById("sections-label").innerText = `Sections: ${2**slider.value}`;
+  });
 };
+
+// format time function
+function formatTime(time) {
+  const minutes = Math.floor(time / 60);
+  let seconds = Math.floor(time % 60);
+  seconds = seconds < 10 ? `0${seconds}` : seconds;
+  return `${minutes}:${seconds}`;
+}
