@@ -1,6 +1,4 @@
 window.onload = () => {
-  console.log("Hello World");
-
   // -----------------------------------
   // DOM Element References
   // -----------------------------------
@@ -48,6 +46,11 @@ window.onload = () => {
   canvasCtx.fillStyle = "rgb(0, 0, 0)";
   canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
+  window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+
   // -----------------------------------
   // Utility Functions
   // -----------------------------------
@@ -76,6 +79,10 @@ window.onload = () => {
     dataArray = new Uint8Array(bufferLength);
   }
 
+  // -----------------------------------
+  // Visualization Handling
+  // -----------------------------------
+
   function renderVisualizationFrame() {
     requestAnimationFrame(renderVisualizationFrame);
     if (!analyser) return;
@@ -87,14 +94,14 @@ window.onload = () => {
     canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
     switch (visualizationMode) {
-      case "linear-spectrogram":
+      case "0":
         drawLinearSpectrogram();
         break;
-      case "circular-spectrogram":
-        // Placeholder
+      case "1":
+        drawCircularSpectrogram();
         break;
-      case "waveform":
-        // Placeholder
+      case "2":
+        drawPeakFrequencySpectrogram();
         break;
       default:
         drawLinearSpectrogram();
@@ -107,6 +114,13 @@ window.onload = () => {
       updateTimeLabels();
     }
   }
+
+  modeSwitch.addEventListener("change", () => {
+    visualizationMode = modeSwitch.value;
+    console.log("visualization mode updated to", visualizationMode);
+  });
+
+  // Visualization modes: 0 = linear spectrogram, 1 = circular spectrogram, 2 = waveform
 
   function drawLinearSpectrogram() {
     const barWidth = (canvas.width / bufferLength) * 2.5;
@@ -131,13 +145,39 @@ window.onload = () => {
     }
   }
 
-  // Placeholders for future modes
-  function drawCircularSpectrogram() {}
-  function drawWaveform() {}
+  function drawCircularSpectrogram() {
+  }
+  
+  function drawPeakFrequencySpectrogram() {
+    const barWidth = (canvas.width / bufferLength) * 2.5;
+    let barHeight;
+    let x = 0;
+
+    for (let i = 0; i < bufferLength; i++) {
+      if (dataArray[i] >= 255) {
+        console.log("Peak frequency detected:", i, dataArray[i]);
+      }
+      barHeight = (dataArray[i]/255)**6 * canvas.height * 0.75;
+
+      const r = barHeight + (25 * (i / bufferLength));
+      const g = 250 * (i / bufferLength);
+      const b = 50;
+
+      canvasCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+      canvasCtx.fillRect(
+        x,
+        canvas.height - barHeight,
+        barWidth,
+        barHeight
+      );
+      x += barWidth;
+    }
+  }
 
   // -----------------------------------
   // Mode Handling
   // -----------------------------------
+
   function handleModeSwitch() {
     // If leaving microphone mode, stop mic stream and reset analyzer and source
     if (micStream && audioMode.value !== "2") {
