@@ -8,6 +8,10 @@ body {
     padding: 0;
 }
 
+label {
+    font-size: small;
+}
+
 .hidden {
     display: none !important;
 }
@@ -26,8 +30,7 @@ body {
     display: none;
 }
 
-#file-select label.custom-file-upload,
-#audio-player-container label.custom-file-upload,
+label.button-label,
 #file-select select {
     border: none;
     margin: 0.5rem 0.25rem;
@@ -78,15 +81,15 @@ body {
 #audio-player-container {
     position: fixed;
     bottom: 0;
-    left: calc(50% - 25vw);
+    left: calc(50% - 37.5vw);
+    width: 75vw;
     display: flex;
     justify-content: center;
     align-items: center;
     margin: 1rem;
 }
 
-#audio-player-container div#seek-container,
-#file-select div#range-container {
+.big-slider-container {
     background-color: #333;
     border-radius: 3px;
     display: flex;
@@ -108,7 +111,7 @@ body {
 
 /* style audio player slider */
 
-#slider-container {
+.slider-container {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -117,6 +120,13 @@ body {
     padding: 0 0.2rem;
     background-color: #111;
     border-radius: 3px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    -webkit-transition: 0.2s;
+}
+
+.slider-container:hover {
+    opacity: 1;
 }
 
 input[type="range"] {
@@ -125,14 +135,7 @@ input[type="range"] {
     height: 1.5rem;
     background: #111;
     outline: none;
-    opacity: 0.7;
-    -webkit-transition: 0.2s;
-    transition: opacity 0.2s;
     border-radius: 3px;
-}
-
-input[type="range"]:hover {
-    opacity: 1;
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -152,4 +155,37 @@ input[type="range"]::-moz-range-thumb {
     background: #999;
     cursor: pointer;
     border-radius: 3px;
+}
+
+#volume-slider-label {
+    padding: 0 0.5rem;
+}
+
+#volume-slider-container {
+    width: 0;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+    transition: 0.2s ease-in;
+}
+
+#volume-slider-container input[type="range"]#volume-slider::-webkit-slider-thumb,
+#volume-slider-container input[type="range"]#volume-slider::-moz-range-thumb {
+    opacity: 0;
+    transition: 0.2s ease-in;
+    transition-delay: 0.2s;
+}
+
+
+
+#volume-container:hover #volume-slider-container {
+    width: 5rem;
+    opacity: 1;
+    margin: inherit;
+    padding: 0 0.2rem;
+}
+
+#volume-container:hover #volume-slider-container input[type="range"]#volume-slider::-webkit-slider-thumb,
+#volume-container:hover #volume-slider-container input[type="range"]#volume-slider::-moz-range-thumb {
+    opacity: 1;
 }
