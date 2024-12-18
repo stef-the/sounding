@@ -214,6 +214,10 @@ input[type="range"]::-moz-range-thumb {
     border: #333 solid 0.25rem;
 }
 
+#volume-slider-container::before {
+    
+}
+
 #volume-slider-container
   input[type="range"]#volume-slider::-webkit-slider-thumb,
 #volume-slider-container input[type="range"]#volume-slider::-moz-range-thumb,
