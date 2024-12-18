@@ -2,27 +2,33 @@ window.onload = () => {
   // -----------------------------------
   // DOM Element References
   // -----------------------------------
-  const audioMode = document.getElementById("audio-mode"); 
-  const modeSwitch = document.getElementById("mode-switch"); 
+  const header = document.getElementById("header");
 
-  const audioFileInput = document.getElementById("audio-file"); 
-  const playButton = document.getElementById("play-btn"); 
-  const playButtonLabel = document.getElementById("play-btn-label"); 
+  const hoverPreview = document.getElementById("hover-preview");
 
-  const sectionsSlider = document.getElementById("sections"); 
-  const sectionsLabel = document.getElementById("sections-label"); 
+  const audioMode = document.getElementById("audio-mode");
+  const modeSwitch = document.getElementById("mode-switch");
 
-  const songTitle = document.getElementById("song-title"); 
-  const audioPlayer = document.getElementById("audio"); 
-  const audioPlayerContainer = document.getElementById("audio-player-container"); 
-  const seekSlider = document.getElementById("seek-slider"); 
-  const currentTimeLabel = document.getElementById("current-time"); 
-  const durationLabel = document.getElementById("duration"); 
+  const audioFileInput = document.getElementById("audio-file");
+  const playButton = document.getElementById("play-btn");
+  const playButtonLabel = document.getElementById("play-btn-label");
 
-  const volumeSlider = document.getElementById("volume-slider"); 
-  const volumeSliderLabel = document.getElementById("volume-slider-label"); 
+  const sectionsSlider = document.getElementById("range-slider");
+  const sectionsLabel = document.getElementById("sections-label");
 
-  const canvas = document.getElementById("canvas"); 
+  const songTitle = document.getElementById("song-title");
+  const audioPlayer = document.getElementById("audio");
+  const audioPlayerContainer = document.getElementById(
+    "audio-player-container"
+  );
+  const seekSlider = document.getElementById("seek-slider");
+  const currentTimeLabel = document.getElementById("current-time");
+  const durationLabel = document.getElementById("duration");
+
+  const volumeSlider = document.getElementById("volume-slider");
+  const volumeSliderLabel = document.getElementById("volume-slider-label");
+
+  const canvas = document.getElementById("canvas");
   const canvasCtx = canvas.getContext("2d");
 
   // -----------------------------------
@@ -36,7 +42,7 @@ window.onload = () => {
   let bufferLength = 0;
   let source = null;
   let micStream = null;
-  let visualizationMode = "linear-spectrogram";
+  let visualizationMode = modeSwitch.value;
 
   // -----------------------------------
   // Canvas Setup
@@ -82,7 +88,6 @@ window.onload = () => {
   // -----------------------------------
   // Visualization Handling
   // -----------------------------------
-
   function renderVisualizationFrame() {
     requestAnimationFrame(renderVisualizationFrame);
     if (!analyser) return;
@@ -109,9 +114,10 @@ window.onload = () => {
 
     if (audioPlayer && audioPlayer.duration && audioMode.value !== "2") {
       if (!isSeeking) {
-        seekSlider.value = (audioPlayer.currentTime / audioPlayer.duration) * 1000;
+        seekSlider.value =
+          (audioPlayer.currentTime / audioPlayer.duration) * 1000;
+        updateTimeLabels();
       }
-      updateTimeLabels();
     }
   }
 
@@ -128,7 +134,7 @@ window.onload = () => {
     let x = 0;
 
     for (let i = 0; i < bufferLength; i++) {
-      barHeight = (((dataArray[i] ** 1.5) / (255 ** 1.5)) * canvas.height) / 3;
+      barHeight = ((dataArray[i] ** 1.5 / 255 ** 1.5) * canvas.height) / 2;
 
       const r = barHeight + 25 * (i / bufferLength);
       const g = 255 * (i / bufferLength);
@@ -145,31 +151,22 @@ window.onload = () => {
     }
   }
 
-  function drawCircularSpectrogram() {
-  }
-  
+  function drawCircularSpectrogram() {}
+
   function drawPeakFrequencySpectrogram() {
     const barWidth = (canvas.width / bufferLength) * 2.5;
     let barHeight;
     let x = 0;
 
     for (let i = 0; i < bufferLength; i++) {
-      if (dataArray[i] >= 255) {
-        console.log("Peak frequency detected:", i, dataArray[i]);
-      }
-      barHeight = (dataArray[i]/255)**6 * canvas.height * 0.75;
+      barHeight = (dataArray[i] / 255) ** 6 * canvas.height;
 
-      const r = barHeight + (25 * (i / bufferLength));
+      const r = barHeight + 25 * (i / bufferLength);
       const g = 250 * (i / bufferLength);
       const b = 50;
 
       canvasCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-      canvasCtx.fillRect(
-        x,
-        canvas.height - barHeight,
-        barWidth,
-        barHeight
-      );
+      canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
       x += barWidth;
     }
   }
@@ -177,11 +174,10 @@ window.onload = () => {
   // -----------------------------------
   // Mode Handling
   // -----------------------------------
-
   function handleModeSwitch() {
     // If leaving microphone mode, stop mic stream and reset analyzer and source
     if (micStream && audioMode.value !== "2") {
-      micStream.getTracks().forEach(track => track.stop());
+      micStream.getTracks().forEach((track) => track.stop());
       micStream = null;
       source = null;
       analyser = null;
@@ -193,7 +189,7 @@ window.onload = () => {
         audioPlayerContainer.classList.remove("hidden");
         break;
       case "1":
-        // File mode: hide audio player container
+        // Player mode: hide audio player container
         audioPlayerContainer.classList.add("hidden");
         break;
       case "2":
@@ -206,6 +202,8 @@ window.onload = () => {
         break;
       default:
         console.warn("Unknown audio mode selected.");
+        // default to player mode
+        audioPlayerContainer.classList.remove("hidden");
     }
   }
 
@@ -216,7 +214,10 @@ window.onload = () => {
   // -----------------------------------
   async function startMicrophoneStream() {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false,
+      });
       micStream = stream;
       if (!audioContext) {
         audioContext = new AudioContext();
@@ -298,8 +299,16 @@ window.onload = () => {
   seekSlider.addEventListener("mouseup", () => {
     isSeeking = false;
     if (audioPlayer && audioPlayer.duration) {
-      audioPlayer.currentTime = (seekSlider.value / 1000) * audioPlayer.duration;
+      audioPlayer.currentTime =
+        (seekSlider.value / 1000) * audioPlayer.duration;
     }
+  });
+
+  // while seeking, update the time label
+  seekSlider.addEventListener("input", () => {
+    currentTimeLabel.innerText = formatTime(audioPlayer.duration)
+      ? formatTime((seekSlider.value / 1000) * audioPlayer.duration)
+      : "0:00";
   });
 
   // -----------------------------------
@@ -322,17 +331,51 @@ window.onload = () => {
   // -----------------------------------
   volumeSlider.addEventListener("input", () => {
     const volumeValue = volumeSlider.value;
-    volumeSliderLabel.innerText = `Volume: ${volumeValue}%`;
+    volumeSliderLabel.innerText = `Vol: ${volumeValue}%`;
     if (audioPlayer && audioMode.value !== "2") {
       audioPlayer.volume = volumeValue / 100;
     }
   });
 
-  volumeSliderLabel.innerText = `Volume: ${volumeSlider.value}%`;
+  volumeSliderLabel.innerText = `Vol: ${volumeSlider.value}%`;
+
+  // -----------------------------------
+  // Hover Preview
+  // -----------------------------------
+  function hoverPrevewInit() {
+    // Change inner text of hover preview depending on touch or mouse
+    if ("ontouchstart" in window) {
+      hoverPreview.innerText = "Tap anywhere to open menu";
+    } else {
+      hoverPreview.innerText = "Hover here to open menu";
+    }
+  }
+
+  function hoverPreviewHandler() {
+    // Delete the preview after 0.15s once it's been hovered for the first time
+    setTimeout(() => {
+      header.removeChild(hoverPreview);
+    }, 150);
+  }
+
+  hoverPreview.addEventListener("mouseover", hoverPreviewHandler);
+  document.addEventListener("touchstart", hoverPreviewHandler);
+
+  // -----------------------------------
+  // Mobile Event Listeners
+  // -----------------------------------
+  function headerTouchHandler() {
+    // Toggle the header visibility on touch
+    header.classList.toggle("active");
+  }
+
+  document.addEventListener("touchstart", headerTouchHandler); // Toggle the header visibility on touch
+  canvas.addEventListener("touchmove", (e) => e.preventDefault()); // Prevent the default touchmove behavior on the canvas
 
   // -----------------------------------
   // Initialization
   // -----------------------------------
   handleSectionsChange();
   handleModeSwitch();
+  hoverPrevewInit();
 };

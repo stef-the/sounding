@@ -4,39 +4,43 @@
     <title>Music Visualiser</title>
     <script src="script.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
-    <form id="file-select">
-      <!-- File input for audio files -->
-      <select id="audio-mode">
-        <option value="0">Local</option>
-        <option value="1">Player (External)</option>
-        <option value="2">Microphone</option>
-      </select>
-      <select id="mode-switch">
-        <option value="0">Linear Spectrogram</option>
-        <option value="1">Circular Spectrogram</option>
-        <option value="2">Peak Frequency Spectrogram</option>
-      </select>
-      <label for="audio-file" class="button-label"> Upload </label>
-      <input type="file" id="audio-file" />
-      <div id="range-container" class="big-slider-container">
-        <span style="font-size: small" id="sections-label"
-          >Sections: we don't know!</span
-        >
-        <div class="slider-container">
-          <input
-            type="range"
-            min="5"
-            max="15"
-            value="10"
-            class="slider"
-            id="sections"
-          />
+    <div id="header">
+      <div id="hover-preview">Hover me</div>
+      <form id="file-select">
+        <!-- File input for audio files -->
+        <select id="audio-mode">
+          <option value="0">Local</option>
+          <option value="1">Local (Hidden)</option>
+          <option value="2">Microphone</option>
+        </select>
+        <select id="mode-switch">
+          <option value="0">Linear Spectrogram</option>
+          <option value="1">Circular Spectrogram</option>
+          <option value="2">Peak Frequency Spectrogram</option>
+        </select>
+        <label for="audio-file" class="button-label"> Upload </label>
+        <input type="file" id="audio-file" />
+        <div id="range-container" class="big-slider-container">
+          <span style="font-size: small" id="sections-label"
+            >Sections: we don't know!</span
+          >
+          <div id="range-slider-container" class="slider-container">
+            <input
+              type="range"
+              min="5"
+              max="15"
+              value="10"
+              class="slider"
+              id="range-slider"
+            />
+          </div>
         </div>
-      </div>
-      <label class="button-label" id="song-title">Unknown</label>
-    </form>
+        <label class="button-label" id="song-title">Unknown</label>
+      </form>
+    </div>
     <div id="visualizer">
       <canvas id="canvas">
         Your browser does not support the HTML5 canvas element.
@@ -58,7 +62,7 @@
         <span id="duration" class="time">0:00</span>
       </div>
       <div id="volume-container" class="big-slider-container">
-        <label for="volume-slider" id="volume-slider-label">Volume</label>
+        <label for="volume-slider" id="volume-slider-label">Vol</label>
         <div class="slider-container" id="volume-slider-container">
           <input type="range" id="volume-slider" max="100" value="80" />
         </div>
